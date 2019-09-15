@@ -25,6 +25,10 @@ const unpack = tar.extract({ cwd: 'target-dir' })
 const tbz = new Pipeline(decode, unpack)
 
 fs.createReadStream('archive.tbz').pipe(tbz)
+
+// specify any minipass options if you like, as the first argument
+// it'll only try to pipeline event emitters with a .pipe() method
+const p = new Pipeline({ objectMode: true }, input, transform, output)
 ```
 
 Pipeline is a [minipass](http://npm.im/minipass) stream, so it's as
