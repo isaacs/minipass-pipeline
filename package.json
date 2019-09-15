@@ -19,5 +19,8 @@
   },
   "dependencies": {
     "minipass": "^2.5.1"
-  }
+  },
+  "files": [
+    "index.js"
+  ]
 }
