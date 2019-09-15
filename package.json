@@ -1,0 +1,23 @@
+{
+  "name": "minipass-pipeline",
+  "version": "0.0.0",
+  "description": "create a pipeline of streams using Minipass",
+  "author": "Isaac Z. Schlueter <i@izs.me> (https://izs.me)",
+  "license": "ISC",
+  "scripts": {
+    "test": "tap",
+    "snap": "tap",
+    "preversion": "npm test",
+    "postversion": "npm publish",
+    "postpublish": "git push origin --follow-tags"
+  },
+  "tap": {
+    "check-coverage": true
+  },
+  "devDependencies": {
+    "tap": "^14.6.4"
+  },
+  "dependencies": {
+    "minipass": "^2.5.1"
+  }
+}
