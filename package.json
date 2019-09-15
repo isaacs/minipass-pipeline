@@ -1,6 +1,6 @@
 {
   "name": "minipass-pipeline",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "create a pipeline of streams using Minipass",
   "author": "Isaac Z. Schlueter <i@izs.me> (https://izs.me)",
   "license": "ISC",
