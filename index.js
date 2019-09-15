@@ -40,12 +40,12 @@ class Pipeline extends Minipass {
     return this[_tail].resume()
   }
 
-  write (chunk, enc) {
-    return this[_head].write(chunk, enc)
+  write (chunk, enc, cb) {
+    return this[_head].write(chunk, enc, cb)
   }
 
-  end (chunk, enc) {
-    this[_head].end(chunk, enc)
+  end (chunk, enc, cb) {
+    this[_head].end(chunk, enc, cb)
     return this
   }
 }
