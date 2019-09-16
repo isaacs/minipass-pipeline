@@ -1,6 +1,9 @@
 const Minipass = require('minipass')
 const EE = require('events')
-const isStream = s => s && s instanceof EE && typeof s.pipe === 'function'
+const isStream = s => s && s instanceof EE && (
+  typeof s.pipe === 'function' || // readable
+  (typeof s.write === 'function' && typeof s.end === 'function') // writable
+)
 
 const _head = Symbol('_head')
 const _tail = Symbol('_tail')
@@ -23,21 +26,35 @@ class Pipeline extends Minipass {
       this.push(...streams)
   }
 
-  [_linkStreams] (...streams) {
+  [_linkStreams] (streams) {
     // reduce takes (left,right), and we return right to make it the
-    // new left value.  returns the tail.  filter out null so we
-    // can pass the head/tail in even when they're not set yet.
-    return streams.filter(isStream).reduce((src, dest) =>
-      src.on('error', er => dest.emit('error', er)).pipe(dest))
+    // new left value.
+    return streams.reduce((src, dest) => {
+      src.on('error', er => dest.emit('error', er))
+      src.pipe(dest)
+      return dest
+    })
   }
 
   push (...streams) {
-    this[_setTail](this[_linkStreams](this[_tail], ...streams))
+    if (this[_tail])
+      streams.unshift(this[_tail])
+
+    const linkRet = this[_linkStreams](streams)
+
+    this[_setTail](linkRet)
+    if (!this[_head])
+      this[_setHead](streams[0])
   }
 
   unshift (...streams) {
-    this[_linkStreams](...streams, this[_head])
-    this[_setHead](streams.find(isStream))
+    if (this[_head])
+      streams.push(this[_head])
+
+    const linkRet = this[_linkStreams](streams)
+    this[_setHead](streams[0])
+    if (!this[_tail])
+      this[_setTail](linkRet)
   }
 
   // readable interface -> tail
@@ -46,8 +63,7 @@ class Pipeline extends Minipass {
     stream.on('error', er => this[_onError](stream, er))
     stream.on('data', chunk => this[_onData](stream, chunk))
     stream.on('end', () => this[_onEnd](stream))
-    if (!this[_head])
-      this[_setHead](stream)
+    stream.on('finish', () => this[_onEnd](stream))
   }
 
   // errors proxied down the pipeline
@@ -65,18 +81,16 @@ class Pipeline extends Minipass {
       super.end()
   }
   pause () {
-    return this[_tail].pause()
+    return this[_tail].pause && this[_tail].pause()
   }
   resume () {
-    return this[_tail].resume()
+    return this[_tail].resume && this[_tail].resume()
   }
 
   // writable interface -> head
   [_setHead] (stream) {
     this[_head] = stream
     stream.on('drain', () => this[_onDrain](stream))
-    if (!this[_tail])
-      this[_setTail](stream)
   }
   [_onDrain] (stream) {
     if (stream === this[_head])

@@ -63,3 +63,31 @@ t.test('single stream pipeline just wraps', t => {
 
   p.end('ending pipeline')
 })
+
+t.test('pipeline to a writable that is not readable', t => {
+  const EE = require('events')
+  const buf = []
+  const writable = new (class extends EE {
+    constructor () {
+      super()
+      this.readable = false
+      this.writable = true
+    }
+    write (chunk) {
+      buf.push(chunk)
+      return true
+    }
+    end (chunk) {
+      this.emit('prefinish')
+      this.emit('finish')
+      this.emit('close')
+    }
+  })
+
+  const p = new Pipeline(writable)
+  p.write('a')
+  p.write('b')
+  p.write('c')
+  p.end()
+  return p.promise().then(() => t.same(buf.join(''), 'abc'))
+})
