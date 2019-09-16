@@ -7,9 +7,12 @@ t.test('wrap some streams', t => {
   const s1 = new Minipass()
   const s2 = new Minipass()
   const s3 = new Minipass()
+  const s4 = new Minipass()
 
-  // test both with and without specifying opts
-  const p =new Pipeline({}, s1, s2, s3)
+  const p = new Pipeline({})
+  p.unshift(s2)
+  p.push(s3, s4)
+  p.unshift(s1)
   p.setEncoding('utf8')
 
   const buf = []
@@ -36,13 +39,6 @@ t.test('wrap some streams', t => {
   s2.emit('error', poop)
 
   p.end('ending pipeline')
-})
-
-t.test('throw stuff', t => {
-  t.throws(() => new Pipeline({}), {
-    message: 'cannot create pipeline without 1 or more streams',
-  })
-  t.end()
 })
 
 t.test('single stream pipeline just wraps', t => {
