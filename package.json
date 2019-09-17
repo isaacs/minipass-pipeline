@@ -18,7 +18,7 @@
     "tap": "^14.6.4"
   },
   "dependencies": {
-    "minipass": "^2.6.2"
+    "minipass": "^2.6.4"
   },
   "files": [
     "index.js"

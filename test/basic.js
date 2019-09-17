@@ -10,6 +10,7 @@ t.test('wrap some streams', t => {
   const s4 = new Minipass()
 
   const p = new Pipeline({})
+
   p.unshift(s2)
   p.push(s3, s4)
   p.unshift(s1)
@@ -90,4 +91,55 @@ t.test('pipeline to a writable that is not readable', t => {
   p.write('c')
   p.end()
   return p.promise().then(() => t.same(buf.join(''), 'abc'))
+})
+
+t.test('pause/resume before adding a stream with data', t => {
+  const p = new Pipeline()
+  let sawData = false
+  let sawEnd = false
+  p.on('data', () => sawData = true)
+  p.on('end', () => sawEnd = true)
+
+  // does not throw
+  p.resume()
+
+  // explicitly pauses
+  p.pause()
+
+  const s = new Minipass()
+  p.push(s)
+  s.end('foo')
+
+  t.equal(sawData, false, 'did not see data until resume')
+  t.equal(sawEnd, false, 'did not see end until resume')
+  p.resume()
+  t.equal(sawData, true, 'saw data when resumed')
+  t.equal(sawEnd, true, 'saw end when resumed')
+
+  t.end()
+})
+
+t.test('pause/resume before adding an empty stream', t => {
+  const p = new Pipeline()
+  let sawData = false
+  let sawEnd = false
+  p.on('data', () => sawData = true)
+  p.on('end', () => sawEnd = true)
+
+  // does not throw
+  p.resume()
+
+  // explicitly pauses
+  p.pause()
+
+  const s = new Minipass()
+  p.push(s)
+  s.end()
+
+  t.equal(sawData, false, 'did not see data until resume')
+  t.equal(sawEnd, false, 'did not see end until resume')
+  p.resume()
+  t.equal(sawData, false, 'still no data (stream is empty!)')
+  t.equal(sawEnd, true, 'saw end when resumed')
+  t.end()
 })

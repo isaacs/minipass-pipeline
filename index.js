@@ -81,10 +81,12 @@ class Pipeline extends Minipass {
       super.end()
   }
   pause () {
-    return this[_tail].pause && this[_tail].pause()
+    super.pause()
+    return this[_tail] && this[_tail].pause && this[_tail].pause()
   }
   resume () {
-    return this[_tail].resume && this[_tail].resume()
+    super.resume()
+    return this[_tail] && this[_tail].resume && this[_tail].resume()
   }
 
   // writable interface -> head
