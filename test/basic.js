@@ -143,3 +143,17 @@ t.test('pause/resume before adding an empty stream', t => {
   t.equal(sawEnd, true, 'saw end when resumed')
   t.end()
 })
+
+t.test('destroy destroys the whole pipeline', t => {
+  const noDestroy = new Minipass()
+  noDestroy.destroy = null
+  const head = new Minipass()
+  const tail = new Minipass()
+  const p = new Pipeline(head, noDestroy, tail)
+  p.destroy()
+  t.equal(head.destroyed, true, 'head destroyed')
+  t.equal(tail.destroyed, true, 'tail destroyed')
+  t.equal(noDestroy.destroyed, false, 'not destroyed without destroy() method')
+  t.equal(p.destroyed, true, 'pipeline destroyed')
+  t.end()
+})

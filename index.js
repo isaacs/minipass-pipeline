@@ -14,6 +14,7 @@ const _onError = Symbol('_onError')
 const _onData = Symbol('_onData')
 const _onEnd = Symbol('_onEnd')
 const _onDrain = Symbol('_onDrain')
+const _streams = Symbol('_streams')
 class Pipeline extends Minipass {
   constructor (opts, ...streams) {
     if (isStream(opts)) {
@@ -22,6 +23,7 @@ class Pipeline extends Minipass {
     }
 
     super(opts)
+    this[_streams] = []
     if (streams.length)
       this.push(...streams)
   }
@@ -37,6 +39,7 @@ class Pipeline extends Minipass {
   }
 
   push (...streams) {
+    this[_streams].push(...streams)
     if (this[_tail])
       streams.unshift(this[_tail])
 
@@ -48,6 +51,7 @@ class Pipeline extends Minipass {
   }
 
   unshift (...streams) {
+    this[_streams].unshift(...streams)
     if (this[_head])
       streams.push(this[_head])
 
@@ -55,6 +59,13 @@ class Pipeline extends Minipass {
     this[_setHead](streams[0])
     if (!this[_tail])
       this[_setTail](linkRet)
+  }
+
+  destroy (er) {
+    // set fire to the whole thing.
+    this[_streams].forEach(s =>
+      typeof s.destroy === 'function' && s.destroy())
+    return super.destroy(er)
   }
 
   // readable interface -> tail
