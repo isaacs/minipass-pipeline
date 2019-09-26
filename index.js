@@ -95,9 +95,15 @@ class Pipeline extends Minipass {
     super.pause()
     return this[_tail] && this[_tail].pause && this[_tail].pause()
   }
-  resume () {
-    super.resume()
-    return this[_tail] && this[_tail].resume && this[_tail].resume()
+
+  // NB: Minipass calls its internal private [RESUME] method during
+  // pipe drains, to avoid hazards where stream.resume() is overridden.
+  // Thus, we need to listen to the resume *event*, not override the
+  // resume() method, and proxy *that* to the tail.
+  emit (ev, ...args) {
+    if (ev === 'resume' && this[_tail] && this[_tail].resume)
+      this[_tail].resume()
+    return super.emit(ev, ...args)
   }
 
   // writable interface -> head
