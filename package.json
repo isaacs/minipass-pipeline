@@ -18,9 +18,12 @@
     "tap": "^14.6.4"
   },
   "dependencies": {
-    "minipass": "^2.8.1"
+    "minipass": "^3.0.0"
   },
   "files": [
     "index.js"
-  ]
+  ],
+  "engines": {
+    "node": ">=8"
+  }
 }
