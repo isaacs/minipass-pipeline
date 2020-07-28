@@ -35,3 +35,34 @@ t.test('verify that pipelines exert backpressure properly', t => {
 
   return p
 })
+
+t.test('tail that returns true, but does not fill up buffer', t => {
+  const p = new Pipeline({ encoding: 'utf8' })
+  const data = []
+  const tail = new class Flushy extends Minipass {
+    write (c) {
+      data.push(c)
+      return true
+    }
+    end () {
+      super.write('flushed')
+      return super.end()
+    }
+  }
+
+  p.unshift(tail)
+
+  const head = new Minipass()
+
+  p.unshift(head)
+  t.equal(p.write('ok'), true, 'write() should return true, nothing buffered')
+  t.equal(p.write('ok'), true, 'write() should return true, nothing buffered')
+  t.equal(p.write('ok'), true, 'write() should return true, nothing buffered')
+  t.equal(p.write('ok'), true, 'write() should return true, nothing buffered')
+  const res = Buffer.concat(data).toString('utf8')
+  t.equal(res, 'okokokok', 'data passed through pipeline')
+  t.equal(p.read(), null, 'no data to read until flushed at end')
+  p.end()
+  t.equal(p.read(), 'flushed', 'data comes through at last')
+  t.end()
+})
