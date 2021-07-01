@@ -11,6 +11,10 @@
     "postversion": "npm publish",
     "postpublish": "git push origin --follow-tags"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/isaacs/minipass-pipeline.git"
+  },
   "tap": {
     "check-coverage": true
   },
