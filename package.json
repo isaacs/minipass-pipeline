@@ -25,5 +25,6 @@
   ],
   "engines": {
     "node": ">=8"
-  }
+  },
+  "repository": "https://github.com/isaacs/minipass-pipeline"
 }
