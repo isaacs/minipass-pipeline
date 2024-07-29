@@ -1,5 +1,5 @@
 const Pipeline = require('../')
-const Minipass = require('minipass')
+const { Minipass } = require('minipass')
 
 const t = require('tap')
 

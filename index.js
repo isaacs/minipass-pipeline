@@ -1,4 +1,4 @@
-const Minipass = require('minipass')
+const { Minipass } = require('minipass')
 const EE = require('events')
 const isStream = s => s && s instanceof EE && (
   typeof s.pipe === 'function' || // readable
@@ -117,7 +117,7 @@ class Pipeline extends Minipass {
   }
   write (chunk, enc, cb) {
     return this[_head].write(chunk, enc, cb) &&
-      (this.flowing || this.buffer.length === 0)
+      (this.flowing || this.bufferLength === 0)
   }
   end (chunk, enc, cb) {
     this[_head].end(chunk, enc, cb)
