@@ -24,7 +24,7 @@
     "index.js"
   ],
   "engines": {
-    "node": ">=8"
+    "node": ">=16 || 14 >=14.17"
   },
   "repository": "https://github.com/isaacs/minipass-pipeline"
 }
