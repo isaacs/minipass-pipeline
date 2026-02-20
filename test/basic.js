@@ -1,5 +1,5 @@
 const Pipeline = require('../')
-const Minipass = require('minipass')
+const { Minipass } = require('minipass')
 const t = require('tap')
 
 t.test('wrap some streams', t => {
@@ -9,12 +9,11 @@ t.test('wrap some streams', t => {
   const s3 = new Minipass()
   const s4 = new Minipass()
 
-  const p = new Pipeline({})
+  const p = new Pipeline({ encoding: 'utf8' })
 
   p.unshift(s2)
   p.push(s3, s4)
   p.unshift(s1)
-  p.setEncoding('utf8')
 
   const buf = []
   p.on('data', c => buf.push(c))
@@ -45,8 +44,7 @@ t.test('wrap some streams', t => {
 t.test('single stream pipeline just wraps', t => {
   const s1 = new Minipass()
 
-  const p = new Pipeline(s1)
-  p.setEncoding('utf8')
+  const p = new Pipeline({ encoding: 'utf8' }, s1)
 
   const buf = []
   p.on('data', c => buf.push(c))
