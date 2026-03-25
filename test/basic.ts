@@ -1,21 +1,21 @@
-const Pipeline = require('../')
-const { Minipass } = require('minipass')
-const t = require('tap')
+import { Pipeline } from '../src/index.js'
+import { Minipass } from 'minipass'
+import t from 'tap'
+import EE from 'events'
 
 t.test('wrap some streams', t => {
-  const specifyOpts = [true, false]
   const s1 = new Minipass()
   const s2 = new Minipass()
   const s3 = new Minipass()
   const s4 = new Minipass()
 
-  const p = new Pipeline({ encoding: 'utf8' })
+  const p = new Pipeline<string>({ encoding: 'utf8' })
 
   p.unshift(s2)
   p.push(s3, s4)
   p.unshift(s1)
 
-  const buf = []
+  const buf: string[] = []
   p.on('data', c => buf.push(c))
   p.on('end', () => {
     t.matchSnapshot(buf, 'got expected data')
@@ -44,9 +44,9 @@ t.test('wrap some streams', t => {
 t.test('single stream pipeline just wraps', t => {
   const s1 = new Minipass()
 
-  const p = new Pipeline({ encoding: 'utf8' }, s1)
+  const p = new Pipeline<string>({ encoding: 'utf8' }, s1)
 
-  const buf = []
+  const buf: string[] = []
   p.on('data', c => buf.push(c))
   p.on('end', () => {
     t.matchSnapshot(buf, 'got expected data')
@@ -63,27 +63,23 @@ t.test('single stream pipeline just wraps', t => {
   p.end('ending pipeline')
 })
 
-t.test('pipeline to a writable that is not readable', t => {
-  const EE = require('events')
-  const buf = []
+t.test('pipeline to a writable that is not readable', async t => {
+  const buf: string[] = []
   const writable = new (class extends EE {
-    constructor () {
-      super()
-      this.readable = false
-      this.writable = true
-    }
-    write (chunk) {
+    readable = false
+    writable = true
+    write(chunk: string) {
       buf.push(chunk)
       return true
     }
-    end (chunk) {
+    end() {
       this.emit('prefinish')
       this.emit('finish')
       this.emit('close')
     }
-  })
+  })()
 
-  const p = new Pipeline(writable)
+  const p = new Pipeline({}, writable as Minipass)
   p.write('a')
   p.write('b')
   p.write('c')
@@ -92,11 +88,11 @@ t.test('pipeline to a writable that is not readable', t => {
 })
 
 t.test('pause/resume before adding a stream with data', t => {
-  const p = new Pipeline()
+  const p = new Pipeline({})
   let sawData = false
   let sawEnd = false
-  p.on('data', () => sawData = true)
-  p.on('end', () => sawEnd = true)
+  p.on('data', () => (sawData = true))
+  p.on('end', () => (sawEnd = true))
 
   // does not throw
   p.resume()
@@ -118,11 +114,11 @@ t.test('pause/resume before adding a stream with data', t => {
 })
 
 t.test('pause/resume before adding an empty stream', t => {
-  const p = new Pipeline()
+  const p = new Pipeline<Buffer>({})
   let sawData = false
   let sawEnd = false
-  p.on('data', () => sawData = true)
-  p.on('end', () => sawEnd = true)
+  p.on('data', () => (sawData = true))
+  p.on('end', () => (sawEnd = true))
 
   // does not throw
   p.resume()
@@ -144,14 +140,18 @@ t.test('pause/resume before adding an empty stream', t => {
 
 t.test('destroy destroys the whole pipeline', t => {
   const noDestroy = new Minipass()
-  noDestroy.destroy = null
+  Object.assign(noDestroy, { destroy: null })
   const head = new Minipass()
   const tail = new Minipass()
-  const p = new Pipeline(head, noDestroy, tail)
+  const p = new Pipeline<Buffer>({}, head, noDestroy, tail)
   p.destroy()
   t.equal(head.destroyed, true, 'head destroyed')
   t.equal(tail.destroyed, true, 'tail destroyed')
-  t.equal(noDestroy.destroyed, false, 'not destroyed without destroy() method')
+  t.equal(
+    noDestroy.destroyed,
+    false,
+    'not destroyed without destroy() method',
+  )
   t.equal(p.destroyed, true, 'pipeline destroyed')
   t.end()
 })

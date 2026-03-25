@@ -1,17 +1,18 @@
-const Pipeline = require('../')
-const { Minipass } = require('minipass')
+import { Pipeline } from '../src/index.js'
+import { Minipass } from 'minipass'
 
-const t = require('tap')
+import t from 'tap'
 
 t.test('backed up piped pipeline should auto-resume', t => {
   const p = new Pipeline(
+    {},
     new Minipass(),
     new Minipass(),
     new Minipass(),
-    new Minipass()
+    new Minipass(),
   )
 
-  const dest = new Minipass({ encoding: 'utf8' })
+  const dest = new Minipass<string>({ encoding: 'utf8' })
   // pipe and then write some data so that the pipeline gets backed up
   p.pipe(dest)
 
